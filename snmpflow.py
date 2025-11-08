@@ -39,7 +39,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import csv
 
 # Import SNMPY library
-from snmpy import *
+try:
+    from snmpy import Snmpy, SnmpVersion, SnmpV3User, SnmpV3AuthProtocol, SnmpV3PrivProtocol
+    from snmpy import SnmpTrapSender, SnmpOctetString, SnmpInteger, SnmpObjectIdentifier
+    from snmpy import decode_snmp_hex
+except ImportError as e:
+    print(f"Error importing snmpy: {e}")
+    print("Please install snmpy: pip install git+https://github.com/snmpware/snmpy.git")
+    sys.exit(1)
+
 import webbrowser
 
 # For performance graphs
