@@ -5,4 +5,4 @@ matplotlib>=3.5.0
 pysnmp==4.4.12
 pyasn1>=0.4.8
 setuptools<81
-snmpy>=1.0.0
+git+https://github.com/JustVugg/snmpy.git
