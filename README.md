@@ -93,6 +93,7 @@ pip install -r requirements.txt
 - `psutil>=5.9.0` - System monitoring and resource management
 - `pysnmp==4.4.12` - SNMP protocol implementation (v4 for compatibility)
 - `pyasn1>=0.4.8` - ASN.1 types and codecs (required by pysnmp)
+- `setuptools<81` - Pinned to avoid pkg_resources deprecation warnings
 - `snmpy` - Advanced SNMP library with trap support (from GitHub)
 - `Pillow>=10.0.0` - Image processing for logo display
 - `matplotlib>=3.5.0` - Performance graphs (optional but recommended)
@@ -281,6 +282,7 @@ Pillow>=10.0.0
 matplotlib>=3.5.0
 pysnmp==4.4.12
 pyasn1>=0.4.8
+setuptools<81
 git+https://github.com/snmpware/snmpy.git
 ```
 

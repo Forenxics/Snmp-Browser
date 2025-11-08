@@ -6,6 +6,10 @@ Includes logging, credentials encryption, memory management, trap receiver,
 performance metrics, batch operations, MIB compilation and multiple profiles
 """
 
+# Suppress pkg_resources deprecation warning from snmpy library
+import warnings
+warnings.filterwarnings('ignore', message='pkg_resources is deprecated as an API')
+
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
 import threading

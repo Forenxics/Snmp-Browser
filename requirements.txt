@@ -4,4 +4,5 @@ Pillow>=10.0.0
 matplotlib>=3.5.0
 pysnmp==4.4.12
 pyasn1>=0.4.8
+setuptools<81
 git+https://github.com/snmpware/snmpy.git
