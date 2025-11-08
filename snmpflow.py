@@ -42,11 +42,17 @@ import csv
 try:
     from snmpy import Snmpy, SnmpVersion, SnmpV3User, SnmpV3AuthProtocol, SnmpV3PrivProtocol
     from snmpy import SnmpTrapSender, SnmpOctetString, SnmpInteger, SnmpObjectIdentifier
-    from snmpy import decode_snmp_hex
 except ImportError as e:
     print(f"Error importing snmpy: {e}")
     print("Please install snmpy: pip install git+https://github.com/snmpware/snmpy.git")
     sys.exit(1)
+
+# Try to import decode_snmp_hex if available (optional feature)
+try:
+    from snmpy import decode_snmp_hex
+    HAS_DECODE_SNMP_HEX = True
+except ImportError:
+    HAS_DECODE_SNMP_HEX = False
 
 import webbrowser
 
@@ -335,25 +341,24 @@ class TrapReceiver(threading.Thread):
         }
         
         try:
-            # Use decoding function from library
-            from snmpy import decode_snmp_hex
-            
-            # Decode the trap
-            decoded = decode_snmp_hex(data.hex(), return_dict=True)
-            
-            if decoded and not decoded.get('error'):
-                trap_info['decoded'] = decoded
-                trap_info['type'] = f"SNMPv{decoded['version']} - {decoded.get('pdu_type', 'Unknown')}"
-                
-                # If it's a trap, add type info
-                if 'trap_type' in decoded:
-                    trap_info['trap_type'] = decoded['trap_type']
-                    trap_info['type'] = f"SNMPv{decoded['version']} - {decoded['trap_type']}"
-                
-                # Extract community
-                if decoded.get('community'):
-                    trap_info['community'] = decoded['community']
-                    
+            # Use decoding function from library if available
+            if HAS_DECODE_SNMP_HEX:
+                # Decode the trap
+                decoded = decode_snmp_hex(data.hex(), return_dict=True)
+
+                if decoded and not decoded.get('error'):
+                    trap_info['decoded'] = decoded
+                    trap_info['type'] = f"SNMPv{decoded['version']} - {decoded.get('pdu_type', 'Unknown')}"
+
+                    # If it's a trap, add type info
+                    if 'trap_type' in decoded:
+                        trap_info['trap_type'] = decoded['trap_type']
+                        trap_info['type'] = f"SNMPv{decoded['version']} - {decoded['trap_type']}"
+
+                    # Extract community
+                    if decoded.get('community'):
+                        trap_info['community'] = decoded['community']
+
         except Exception as e:
             self.logger.debug(f"Error in advanced trap parsing: {e}")
             
@@ -1411,24 +1416,27 @@ class SnmpBrowserGUI:
         output_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
         def decode():
-            from snmpy import decode_snmp_hex
             import io
             import sys
-            
+
+            if not HAS_DECODE_SNMP_HEX:
+                messagebox.showerror("Error", "decode_snmp_hex function is not available in your snmpy installation.\n\nThis feature requires a newer version of snmpy.")
+                return
+
             # Get hex
             hex_data = input_text.get(1.0, tk.END).strip()
             # Remove comments
-            hex_data = '\n'.join(line for line in hex_data.split('\n') 
+            hex_data = '\n'.join(line for line in hex_data.split('\n')
                                 if not line.strip().startswith('#'))
-            
+
             if not hex_data:
                 messagebox.showwarning("Warning", "Please enter hex data!")
                 return
-            
+
             # Capture output
             old_stdout = sys.stdout
             sys.stdout = buffer = io.StringIO()
-            
+
             try:
                 decode_snmp_hex(hex_data)
                 output = buffer.getvalue()
@@ -1436,7 +1444,7 @@ class SnmpBrowserGUI:
                 output = f"Decoding error:\n{str(e)}"
             finally:
                 sys.stdout = old_stdout
-            
+
             # Show result
             output_text.config(state=tk.NORMAL)
             output_text.delete(1.0, tk.END)
@@ -2009,19 +2017,28 @@ class SnmpBrowserGUI:
             
             # On-demand decoding
             def decode_full():
-                from snmpy import decode_snmp_hex
                 import io
                 import sys
-                
+
+                if not HAS_DECODE_SNMP_HEX:
+                    decode_text.config(state=tk.NORMAL)
+                    decode_text.delete(1.0, tk.END)
+                    decode_text.insert(tk.END, "decode_snmp_hex function is not available in your snmpy installation.\n\nThis feature requires a newer version of snmpy.")
+                    decode_text.config(state=tk.DISABLED)
+                    return
+
                 # Capture output
                 old_stdout = sys.stdout
                 sys.stdout = buffer = io.StringIO()
-                
-                decode_snmp_hex(raw_hex)
-                
-                output = buffer.getvalue()
-                sys.stdout = old_stdout
-                
+
+                try:
+                    decode_snmp_hex(raw_hex)
+                    output = buffer.getvalue()
+                except Exception as e:
+                    output = f"Decoding error:\n{str(e)}"
+                finally:
+                    sys.stdout = old_stdout
+
                 decode_text.config(state=tk.NORMAL)
                 decode_text.delete(1.0, tk.END)
                 decode_text.insert(tk.END, output)
