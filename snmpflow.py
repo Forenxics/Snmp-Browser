@@ -420,10 +420,12 @@ class PerformanceMonitor:
                 self.current_stats['min_response_time'], response_time)
             self.current_stats['max_response_time'] = max(
                 self.current_stats['max_response_time'], response_time)
-            self.current_stats['avg_response_time'] = (
-                self.current_stats['total_response_time'] / 
-                self.current_stats['successful_queries']
-            )
+            # Only calculate average if there are successful queries
+            if self.current_stats['successful_queries'] > 0:
+                self.current_stats['avg_response_time'] = (
+                    self.current_stats['total_response_time'] /
+                    self.current_stats['successful_queries']
+                )
             
         # Add to metrics
         self.metrics['response_times'].append(response_time if response_time else 0)
